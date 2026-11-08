@@ -2,13 +2,13 @@
 
 [![Buy me a coffee](https://img.shields.io/badge/Buy_me_a_coffee-Support-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/loukious)
 
-[Source code](https://github.com/Loukious/arc-lobby-mute)
+[Download on Nexus Mods](https://www.nexusmods.com/arcraiders/mods/42?tab=files) · [Source code](https://github.com/Loukious/arc-lobby-mute)
 
 A small standalone Windows tray app that mutes **only ARC Raiders** in the lobby/menu and unmutes it when you connect to a match. Uses Windows' per-application audio controls and the game's local connection file. No game injection, administrator rights, extra packages, network access, or changes to game files.
 
 ## Run
 
-For **Windows 10/11 x64**. Extract the downloaded ZIP to a folder of your choice, then open `ArcLobbyMute.exe`. If building from source, it is in `dist\ArcLobbyMute.exe`. This GitHub repository contains the source code; app downloads are intended for Nexus Mods.
+For **Windows 10/11 x64**. [Download the app from Nexus Mods](https://www.nexusmods.com/arcraiders/mods/42?tab=files), extract the ZIP to a folder of your choice, then open `ArcLobbyMute.exe`. If building from source, it is in `dist\ArcLobbyMute.exe`. This GitHub repository contains the source code; app downloads are hosted on Nexus Mods.
 
 Automation is on by default. Close its window to leave it running in the notification area; double-click the teal speaker icon to reopen it. Right-click the icon to pause or quit. Pausing or quitting restores each game audio session's mute state from before automation took control; volume sliders are never changed.
 
