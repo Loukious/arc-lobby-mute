@@ -2,6 +2,8 @@
 
 [![Buy me a coffee](https://img.shields.io/badge/Buy_me_a_coffee-Support-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/loukious)
 
+[Source code](https://github.com/Loukious/arc-lobby-mute)
+
 A small standalone Windows tray app that mutes **only ARC Raiders** in the lobby/menu and unmutes it when you connect to a match. Uses Windows' per-application audio controls and the game's local connection file. No game injection, administrator rights, extra packages, network access, or changes to game files.
 
 ## Run
