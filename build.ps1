@@ -70,7 +70,7 @@ Copy-Item -LiteralPath (Join-Path $projectRoot 'README.md') -Destination (Join-P
 Get-Item -LiteralPath (Join-Path $outputDir 'ArcLobbyMute.exe') | Select-Object FullName, Length
 
 if ($Test -or $StateOnly) {
-    $testSources = @((Join-Path $projectRoot 'src\GameState.cs'), (Join-Path $projectRoot 'src\CoreAudio.cs'), (Join-Path $projectRoot 'tests\Tests.cs'))
+    $testSources = @((Join-Path $projectRoot 'src\GameState.cs'), (Join-Path $projectRoot 'src\UdpConnections.cs'), (Join-Path $projectRoot 'src\CoreAudio.cs'), (Join-Path $projectRoot 'tests\Tests.cs'))
     & $compiler @common /target:exe "/out:$buildDir\ArcLobbyMute.Tests.exe" @testSources
     if ($LASTEXITCODE -ne 0) { throw 'Test build failed.' }
     $testArguments = if ($StateOnly) { @('--state-only') } else { @() }

@@ -12,6 +12,7 @@ namespace ArcLobbyMute
         public readonly HashSet<uint> ProcessIds = new HashSet<uint>();
         public bool ConnectionPresent;
         public bool ConnectionFresh;
+        public bool MatchSocketPresent;
         public bool ReadFailed;
     }
 
@@ -46,12 +47,17 @@ namespace ArcLobbyMute
                 // GetAttributes distinguishes a missing file from access/IO errors.
                 File.GetAttributes(ConnectionPath);
                 snapshot.ConnectionPresent = true;
-                snapshot.ConnectionFresh = File.GetLastWriteTimeUtc(ConnectionPath) >= earliestStart.AddSeconds(-2);
+                DateTime writtenUtc = File.GetLastWriteTimeUtc(ConnectionPath);
+                snapshot.ConnectionFresh = writtenUtc >= earliestStart.AddSeconds(-2);
+                if (snapshot.ConnectionFresh)
+                    snapshot.MatchSocketPresent = UdpConnections.HasMatchSocket(
+                        UdpConnections.Read(snapshot.ProcessIds), snapshot.ProcessIds, writtenUtc);
             }
             catch (FileNotFoundException) { }
             catch (DirectoryNotFoundException) { }
             catch (IOException) { snapshot.ReadFailed = true; }
             catch (UnauthorizedAccessException) { snapshot.ReadFailed = true; }
+            catch (System.ComponentModel.Win32Exception) { snapshot.ReadFailed = true; }
             return snapshot;
         }
     }
@@ -81,13 +87,14 @@ namespace ArcLobbyMute
                 missingSince = null;
                 previous = GameState.Waiting;
             }
-            if (snapshot.ConnectionPresent && snapshot.ConnectionFresh)
+            if (snapshot.ConnectionPresent && snapshot.ConnectionFresh && snapshot.MatchSocketPresent)
             {
                 missingSince = null;
                 return previous = GameState.Match;
             }
             if (!missingSince.HasValue) missingSince = now;
-            // Avoid muting during short file replacement gaps. Unmute immediately on creation.
+            // Avoid muting during short file/socket replacement gaps. A retained
+            // connection file cannot hold Match once its socket has closed.
             if (now - missingSince.Value < TimeSpan.FromSeconds(2))
                 return previous == GameState.Match ? GameState.Match : GameState.Waiting;
             return previous = GameState.Lobby;

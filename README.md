@@ -4,7 +4,7 @@
 
 [Download on Nexus Mods](https://www.nexusmods.com/arcraiders/mods/42?tab=files) · [Source code](https://github.com/Loukious/arc-lobby-mute)
 
-A small standalone Windows tray app that mutes **only ARC Raiders** in the lobby/menu and unmutes it when you connect to a match. Uses Windows' per-application audio controls and the game's local connection file. No game injection, administrator rights, extra packages, network access, or changes to game files.
+A small standalone Windows tray app that mutes **only ARC Raiders** in the lobby/menu and unmutes it when you connect to a match. Uses Windows' per-application audio controls, the game's local connection file metadata and Windows' UDP socket table. No game injection, administrator rights, extra packages, packet capture, outgoing network traffic, or changes to game files.
 
 ## Run
 
@@ -19,13 +19,13 @@ The window and tray menu follow Windows' **app** light/dark theme and respond to
 ## Detection
 
 - `PioneerGame.exe` absent: wait for the game.
-- Game running and `%LOCALAPPDATA%\Embark\Pioneer\Connectinfo.json` present, with a timestamp from this game launch: unmute.
-- Game running and the file absent (or from an older launch) for at least two seconds: mute.
-- A file access error: restore previous mute state and retry.
+- Game running and `%LOCALAPPDATA%\Embark\Pioneer\Connectinfo.json` from this game launch, with its matching game-owned UDP socket still open: unmute.
+- Game running and the file absent, from an older launch, or its matching socket closed for at least two seconds: mute. This includes returning to the lobby while the file remains on disk.
+- A file or socket-table access error: restore previous mute state and retry.
 
-Checks run once per second. Match audio returns within about one second of the file appearing; lobby muting takes about two to three seconds. The app covers the game's audio sessions across all active playback devices and picks up new sessions or device changes on the next check.
+Checks run once per second. Match audio returns within about one second of the match socket appearing; lobby muting takes about two to three seconds after it closes. The app covers the game's audio sessions across all active playback devices and picks up new sessions or device changes on the next check.
 
-The file was observed disappearing on return to the lobby and reappearing with a new server on the next match. It signals a server connection, so deployment/loading may already count as a match. Startup, menus and matchmaking without a connection file count as lobby. Game updates may change this behavior. A forced termination of the tray app cannot run its audio restoration; use **Quit** for a clean stop. Windows Volume Mixer can always manually unmute the game.
+The connection file can remain after a match ends. The app correlates its write time with a game-owned IPv4 or IPv6 UDP socket bound to all local interfaces and created within two seconds of that write. It compares those two timestamps, so a long match does not expire just because its file is old. Deployment/loading may already count as a match. This is a heuristic based on observed game behavior; game updates may change the socket pattern. A forced termination of the tray app cannot run its audio restoration; use **Quit** for a clean stop. Windows Volume Mixer can always manually unmute the game.
 
 Only the local player's state is detected. No server addresses, routing tokens or other contents of the connection file are read or logged.
 
@@ -38,9 +38,9 @@ Uses the .NET Framework compiler included with Windows; the executable needs .NE
 .\build\ArcLobbyMute.Tests.exe --inspect
 ```
 
-Tests exercise lobby/match transitions, transient file removal, stale files, restart and error recovery, plus real Windows audio mute/unmute, volume preservation, original-mute restoration and process isolation using a silent test session. `--inspect` only reads the running game's detected state and audio sessions.
+Tests exercise lobby/match transitions, retained files after a match, long matches, transient file/socket gaps, restart and error recovery. Integration checks open and close local IPv4/IPv6 UDP sockets without sending traffic, then verify real Windows audio mute/unmute, volume preservation, original-mute restoration and process isolation using a silent test session. `--inspect` only reads the running game's connection/socket state and audio sessions.
 
-To run only state-detection checks on a machine without a playback device:
+To run detection and local-socket checks on a machine without a playback device:
 
 ```powershell
 .\build.ps1 -Test -StateOnly
